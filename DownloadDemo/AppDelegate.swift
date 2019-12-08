@@ -26,11 +26,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         //创建download session
         let configuration    = URLSessionConfiguration.background(withIdentifier: identifier)
         let downloadssession = URLSession(configuration: configuration,
-                                          delegate: SessionManager.downShare,
+                                          delegate: DownloadManager.downloadManagerInstance.defaultSession as? URLSessionDelegate,
                                           delegateQueue: nil)
          
         //指定download session
-        SessionManager.downShare.session = downloadssession
+        DownloadManager.downloadManagerInstance.defaultSession = downloadssession
     }
     
 

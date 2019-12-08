@@ -2,7 +2,7 @@
 //  DownloadState.swift
 //  DownloadDemo
 //
-//  Created by 朴子hp on 2019/12/7.
+//  Created by 朴子hp on 2019/12/4.
 //  Copyright © 2019 朴子hp. All rights reserved.
 //
 
@@ -22,4 +22,4 @@ enum DownloadEvent {
     
 }
 
-let maxConcurrentTaskCount = 5 //下载队列并发数
+let maxConcurrentTaskCount = 3 //下载队列并发数

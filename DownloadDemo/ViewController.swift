@@ -26,6 +26,12 @@ class ViewController: UIViewController {
         request!.delegate = self
         request!.allowResume = true
         request!.startDownload()
+        
+        request = DownloadRequest.initWithURL(url: "http://api.gfs100.cn/upload/20171218/201712181643211975.mp4")
+        request!.delegate = self
+        request!.allowResume = true
+        request!.startDownload()
+        
     }
     
 
