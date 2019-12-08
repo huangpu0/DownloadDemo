@@ -12,6 +12,27 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
+    //用于保存后台下载的completionHandler
+    var backgroundSessionCompletionHandler: (() -> Void)?
+    
+    //后台下载完毕后会调用（我们将其交由下载工具类做后续处理）
+    func application(_ application: UIApplication,
+                     handleEventsForBackgroundURLSession identifier: String,
+                     completionHandler: @escaping () -> Void) {
+         
+        //用于保存后台下载的completionHandler
+        backgroundSessionCompletionHandler = completionHandler
+         
+        //创建download session
+        let configuration    = URLSessionConfiguration.background(withIdentifier: identifier)
+        let downloadssession = URLSession(configuration: configuration,
+                                          delegate: SessionManager.downShare,
+                                          delegateQueue: nil)
+         
+        //指定download session
+        SessionManager.downShare.session = downloadssession
+    }
+    
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
