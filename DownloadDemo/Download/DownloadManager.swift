@@ -19,7 +19,7 @@ class DownloadManager: NSObject {
         self.queue = {
             let operationQueue = OperationQueue()
         
-            operationQueue.maxConcurrentOperationCount = 3
+            operationQueue.maxConcurrentOperationCount = 10
             operationQueue.isSuspended = false
             operationQueue.qualityOfService = .utility
             
@@ -29,7 +29,7 @@ class DownloadManager: NSObject {
         
         
         let defaultSessionConfig = URLSessionConfiguration.background(withIdentifier: "com.hp.download")
-        defaultSessionConfig.timeoutIntervalForRequest = 120; //给定时间内没有数据传输的超时时间
+        defaultSessionConfig.timeoutIntervalForRequest  = 120; //给定时间内没有数据传输的超时时间
         defaultSessionConfig.timeoutIntervalForResource = 60; //给定时间内服务器查找资源超时时间
         defaultSession = URLSession.init(configuration: defaultSessionConfig,
                                           delegate: self,
@@ -160,13 +160,14 @@ class DownloadManager: NSObject {
 
 extension DownloadManager:URLSessionDelegate,URLSessionDownloadDelegate{
     
+    //资源文件下载成功回掉此方法
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
 
         for request in self.taskList {
             guard request.task?.currentRequest?.url?.absoluteString == downloadTask.currentRequest?.url?.absoluteString else{
                 break
             }
-
+            
             self.removeTasklistAtRequest(request)
             request.deleteResumeDatat() //移除断点续传缓存数据文件
             let savePath = request.savePath + "/" + request.saveFileName
@@ -187,6 +188,7 @@ extension DownloadManager:URLSessionDelegate,URLSessionDownloadDelegate{
         }
     }
 
+    //资源文件下载进度
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
                               didWriteData bytesWritten: Int64,
                                       totalBytesWritten: Int64,
@@ -238,16 +240,16 @@ extension DownloadManager:URLSessionDelegate,URLSessionDownloadDelegate{
             self.removeTasklistAtRequest(matchingRequest!)
         }
         
+        //下载完成
         guard error != nil else{
-            print("下载完成")
             DispatchQueue.main.async {
                 matchingRequest?.delegate?.requestDownloadFinish?(matchingRequest!)
             }
             return
         }
         
+        //请求取消
         let nsError:NSError = error! as NSError
-        
         if nsError.code == NSURLErrorCancelled ||
            nsError.code == URLError.cancelled.rawValue{
             print("请求取消")
@@ -255,6 +257,18 @@ extension DownloadManager:URLSessionDelegate,URLSessionDownloadDelegate{
        
         if(error != nil) {
             print("下载失败-\(error!)")
+        //如果下载任务可以恢复，那么NSError的userInfo包含了NSURLSessionDownloadTaskResumeData键对应的数据，保存起来，继续下载要用到
+            if let resumeData = (error! as NSError).userInfo[NSURLSessionDownloadTaskResumeData] as? Data {
+                print("已下载数据-\(resumeData)")
+                let tmpPath = DownloadFileUtils.downloadTmpPath() + "/" + DownloadFileUtils.cachedFileNameForKey(key: (task.currentRequest?.url!.absoluteString)!)
+
+                let isTrue = (resumeData as NSData).write(toFile: tmpPath, atomically: false)
+                if (!isTrue) {
+                    print("resumeData 缓存数据写入失败")
+                }
+                
+            }
+
             DispatchQueue.main.async {
                 matchingRequest?.delegate?.requestDownloadFaild?(matchingRequest!, error: error!)
             }

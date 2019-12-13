@@ -23,3 +23,6 @@ enum DownloadEvent {
 }
 
 let maxConcurrentTaskCount = 3 //下载队列并发数
+
+
+

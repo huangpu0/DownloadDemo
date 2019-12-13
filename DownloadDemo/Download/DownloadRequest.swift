@@ -13,7 +13,7 @@ class DownloadRequest: NSObject{
     private(set) var request : URLRequest!//请求对象
     
     var state : DownloadEvent = .none            //请求状态
-    var tempPath : String {                     //临时文件目录 暂未使用
+    var tempPath : String {                     //临时文件目录
         return DownloadFileUtils.downloadTmpPath()
     }
     
@@ -78,12 +78,14 @@ extension DownloadRequest {
         }
         return nil
     }
+    
     /**
      *开始下载任务 适用于首次添加下载任务
      **/
     func startDownload(){
         self.manager?.startRequestTask(self)
     }
+    
     /**
      * 暂停下载任务
      * 注意初始化时allowResume 属性为YES 否则无效
@@ -100,22 +102,25 @@ extension DownloadRequest {
         
         self.task?.cancel(byProducingResumeData: { [weak self](resumeData) in
             // resumeData : 包含了继续下载的开始位置\下载的url
+            print("暂停时已下载数据--\(String(describing: resumeData))")
             self?.resumeData = resumeData
             self?.task = nil
             self?.manager?.pauseRequest(self!)
             self?.resumeDatatWriteToFile()
         })
+        
     }
     
     //断点缓存数据写入文件
     func resumeDatatWriteToFile(){
+         
         if (self.resumeData == nil) {
             print("resumeData 为空")
             return
         }
-        let tmpPath = DownloadFileUtils.downloadTmpPath() + "/" + DownloadFileUtils.cachedFileNameForKey(key: url)
-        
-       let isTrue = (self.resumeData! as NSData).write(toFile: tmpPath, atomically: false)
+
+       let tmpPath = DownloadFileUtils.downloadTmpPath() + "/" + DownloadFileUtils.cachedFileNameForKey(key: url)
+       let isTrue  = (self.resumeData! as NSData).write(toFile: tmpPath, atomically: false)
         
         if (!isTrue) {
             print("resumeData 缓存数据写入失败")
@@ -136,6 +141,7 @@ extension DownloadRequest {
      * 注意初始化时allowResume 属性为YES 否则无效
      **/
     func resumeDownload(){
+        
         guard self.allowResume else {
             return
         }
@@ -157,5 +163,6 @@ extension DownloadRequest {
         }
         self.manager?.cancelRequest(self)
     }
+    
     
 }

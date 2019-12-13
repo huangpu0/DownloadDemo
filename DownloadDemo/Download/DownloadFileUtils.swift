@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CommonCrypto
 
 class DownloadFileUtils: NSObject {
     
@@ -61,7 +62,57 @@ class DownloadFileUtils: NSObject {
         }catch {
             print("文件错误-\(error)")
         }
-        
     }
 
+    //移除文件
+    static func removeFile(_ url: String) -> Void {
+        let path = downloadPath() + "/" + URL.init(string: url)!.lastPathComponent
+        do {
+            try FileManager.default.removeItem(atPath: path)
+        } catch  {
+            print("删除文件错误-\(error)")
+        }
+    }
+    
 }
+
+//MARK: - 校证文件的正确性 md5（需服务器返回对应数据、下载完成后进行比对、校正）
+extension DownloadFileUtils {
+    
+   class func md5File(_ url: URL) -> String? {
+        
+        let bufferSize = 1024 * 1024
+    
+        do {
+            //打开文件
+            let file = try FileHandle(forReadingFrom: url)
+            defer {
+                file.closeFile()
+            }
+            
+            //初始化内容
+            var context = CC_MD5_CTX()
+            CC_MD5_Init(&context)
+            
+            //读取文件信息
+            while case let data = file.readData(ofLength: bufferSize), data.count > 0 {
+                data.withUnsafeBytes {
+                    _ = CC_MD5_Update(&context, $0, CC_LONG(data.count))
+                }
+            }
+            
+            //计算Md5摘要
+            var digest = Data(count: Int(CC_MD5_DIGEST_LENGTH))
+            digest.withUnsafeMutableBytes {
+                _ = CC_MD5_Final($0, &context)
+            }
+            return digest.map { String(format: "%02hhx", $0) }.joined()
+            
+        } catch {
+            print("不能打开文件:-", error.localizedDescription)
+            return nil
+        }
+    }
+    
+}
+
