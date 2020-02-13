@@ -21,7 +21,7 @@ class ViewController: UIViewController {
             
             let path = DownloadFileUtils.downloadPath() + "/" + URL.init(string: "http://dldir1.qq.com/qqfile/QQforMac/QQ_V4.2.4.dmg")!.lastPathComponent
             let md5 = DownloadFileUtils.md5File(URL.init(fileURLWithPath: path))
-            print("已下载文件--md5--\(String(describing: md5))")
+            print("已下载文件--md5代码--\(String(describing: md5))")
             return
         }
     
