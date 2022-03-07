@@ -49,16 +49,13 @@ class DownloadManager: NSObject {
     func refreshDownloadTask(){
         downloadQueue.async {
             var startCount = 0
-            var hasTaskRuning = false
             for req in self.taskList {
                 if (req.state == .downloading) {
                     startCount += 1
-                    hasTaskRuning = true
                 }else if (req.state == .waiting) {
                     req.state = .downloading;
                     req.task?.resume()
                     startCount += 1
-                    hasTaskRuning = true
                     DispatchQueue.main.async(execute: {
                         req.delegate?.requestDownloadStart?(req)
                     })
